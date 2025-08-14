@@ -106,8 +106,22 @@ const tableMapping = [
 // Enhanced table selection logic endpoint
 app.post('/select-table', (req, res) => {
   try {
-    const { partySize, tablePreference } = req.body;
+    const { partySize, tablePreference, actionType } = req.body;
     
+    // Handle cancellations - return all calendars for searching
+    if (actionType === 'annuleren' || actionType === 'cancel') {
+      return res.json({
+        success: true,
+        actionType: 'cancellation',
+        allCalendars: tableMapping.map(table => ({
+          name: table.name,
+          calendarId: table.calendarId,
+          type: table.type
+        })),
+        message: 'All calendars returned for event search and deletion'
+      });
+    }
+
     if (!partySize) {
       return res.status(400).json({ error: 'partySize is required' });
     }
@@ -289,6 +303,15 @@ app.get('/', (req, res) => {
         body: {
           partySize: 4,
           tablePreference: 'Tafel Raam'
+        }
+      },
+      {
+        url: '/select-table',
+        method: 'POST', 
+        body: {
+          actionType: 'annuleren',
+          partySize: 'any',
+          tablePreference: 'any'
         }
       },
       {
