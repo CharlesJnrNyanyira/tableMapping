@@ -108,17 +108,17 @@ app.post('/select-table', (req, res) => {
   try {
     const { partySize, tablePreference, actionType } = req.body;
     
-    // Handle cancellations - return all calendars for searching
-    if (actionType === 'annuleren' || actionType === 'cancel') {
+    // Handle cancellations and rescheduling - return all calendars for searching
+    if (actionType === 'annuleren' || actionType === 'cancel' || actionType === 'verzetten') {
       return res.json({
         success: true,
-        actionType: 'cancellation',
+        actionType: actionType === 'verzetten' ? 'reschedule' : 'cancellation',
         allCalendars: tableMapping.map(table => ({
           name: table.name,
           calendarId: table.calendarId,
           type: table.type
         })),
-        message: 'All calendars returned for event search and deletion'
+        message: `All calendars returned for event search and ${actionType === 'verzetten' ? 'rescheduling' : 'deletion'}`
       });
     }
 
@@ -310,8 +310,17 @@ app.get('/', (req, res) => {
         method: 'POST', 
         body: {
           actionType: 'annuleren',
-          partySize: 'any',
-          tablePreference: 'any'
+          partySize: '',
+          tablePreference: ''
+        }
+      },
+      {
+        url: '/select-table',
+        method: 'POST', 
+        body: {
+          actionType: 'verzetten',
+          partySize: '',
+          tablePreference: ''
         }
       },
       {
